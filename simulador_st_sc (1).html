@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador ST — Santa Catarina</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F4F1EC;
+    --surface: #FDFBF7;
+    --border: #D8D3C8;
+    --border-strong: #B0A898;
+    --text: #1A1814;
+    --text-muted: #7A7268;
+    --text-light: #A8A098;
+    --accent: #2D5A3D;
+    --accent-light: #E8F0EB;
+    --accent-mid: #4A8C60;
+    --warning: #8B5E1A;
+    --warning-light: #F5EDD8;
+    --danger: #7A2020;
+    --danger-light: #F5E0E0;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--accent);
+    padding: 20px 24px 18px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .header-icon {
+    width: 36px; height: 36px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .header-icon svg { width: 20px; height: 20px; fill: none; stroke: #fff; stroke-width: 1.8; }
+  header h1 { font-size: 16px; font-weight: 600; color: #fff; letter-spacing: -0.3px; }
+  header p { font-size: 12px; color: rgba(255,255,255,0.65); margin-top: 1px; }
+  .header-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    background: rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.9);
+    border-radius: 6px;
+    padding: 4px 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* MAIN */
+  main { max-width: 640px; margin: 0 auto; padding: 20px 16px 0; }
+
+  /* CARD */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  /* FORM */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  @media (max-width: 400px) { .form-grid { grid-template-columns: 1fr; } }
+
+  .field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .field input {
+    width: 100%;
+    height: 44px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0 12px;
+    font-family: var(--mono);
+    font-size: 15px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+    -webkit-appearance: none;
+  }
+  .field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(45,90,61,0.1); }
+  .field input::placeholder { color: var(--text-light); font-size: 13px; }
+
+  .btn-calc {
+    width: 100%;
+    height: 48px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: -0.2px;
+    transition: background 0.15s, transform 0.1s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-calc:active { transform: scale(0.98); background: #234830; }
+  .btn-calc svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 2; }
+
+  .error-msg {
+    font-size: 13px;
+    color: var(--danger);
+    background: var(--danger-light);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-top: 10px;
+    display: none;
+  }
+
+  /* RESULTADO */
+  #resultado { display: none; margin-top: 16px; }
+
+  .produto-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .produto-cod {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 3px;
+  }
+  .produto-nome {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .tipo-badge {
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .badge-pauta { background: var(--accent-light); color: var(--accent); }
+  .badge-mva { background: var(--warning-light); color: var(--warning); }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .metric {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+  }
+  .metric.highlight {
+    background: var(--accent-light);
+    border-color: rgba(45,90,61,0.25);
+    grid-column: 1 / -1;
+  }
+  .metric .mlabel {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .metric.highlight .mlabel { color: var(--accent); }
+  .metric .mval {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+  .metric.highlight .mval {
+    font-size: 28px;
+    color: var(--accent);
+  }
+  .metric .msub {
+    font-size: 11px;
+    color: var(--text-light);
+    margin-top: 2px;
+  }
+
+  /* HISTÓRICO */
+  #hist-card { display: none; }
+  .hist-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .btn-limpar {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+  .btn-limpar:hover { border-color: var(--border-strong); color: var(--text); }
+
+  .hist-list { display: flex; flex-direction: column; gap: 8px; }
+  .hist-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 4px 12px;
+    align-items: center;
+  }
+  .hist-cod {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-muted);
+    grid-row: span 2;
+    align-self: center;
+  }
+  .hist-nome {
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hist-badge {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    grid-row: span 2;
+    align-self: center;
+  }
+  .hist-detalhe {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hist-detalhe strong { color: var(--accent); font-weight: 600; font-family: var(--mono); }
+
+  /* INFO FOOTER */
+  .info-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+  .info-box p { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+  .info-box strong { color: var(--text); font-weight: 600; }
+  .formula-line {
+    display: flex; align-items: baseline; gap: 6px;
+    margin-top: 6px;
+  }
+  .formula-label { font-size: 11px; color: var(--text-light); flex-shrink: 0; }
+  .formula-val { font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
+
+  /* SCROLL TABLE on very small screens */
+  .table-scroll { overflow-x: auto; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="header-icon">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="9" x2="9" y2="21"/></svg>
+    </div>
+    <div>
+      <h1>Simulador ST</h1>
+      <p>Substituição Tributária — Santa Catarina</p>
+    </div>
+  </div>
+  <div class="header-badge">783 produtos</div>
+</header>
+
+<main>
+
+  <div class="card" style="margin-top:16px">
+    <div class="card-title">Calcular preço sem imposto</div>
+    <div class="form-grid">
+      <div class="field">
+        <label>Código do produto</label>
+        <input type="number" id="cod" placeholder="Ex: 9636" inputmode="numeric" />
+      </div>
+      <div class="field">
+        <label>Valor final (R$)</label>
+        <input type="number" id="vf" placeholder="Ex: 45,90" step="0.01" inputmode="decimal" />
+      </div>
+    </div>
+    <button class="btn-calc" onclick="calcular()">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Calcular
+    </button>
+    <div id="errmsg" class="error-msg"></div>
+
+    <div id="resultado">
+      <div class="produto-header">
+        <div>
+          <div class="produto-cod" id="prod-cod"></div>
+          <div class="produto-nome" id="prod-nome"></div>
+        </div>
+        <div class="tipo-badge" id="tipo-badge"></div>
+      </div>
+
+      <div class="metrics" id="metrics-grid"></div>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <p><strong>Como funciona:</strong> Informe o código do produto e o valor final de venda. O simulador verifica automaticamente se o produto tem pauta ST e aplica a fórmula correta.</p>
+    <div class="formula-line">
+      <span class="formula-label">Com pauta →</span>
+      <span class="formula-val">(Valor Final − Pauta × 0,25) ÷ 0,75</span>
+    </div>
+    <div class="formula-line">
+      <span class="formula-label">Sem pauta →</span>
+      <span class="formula-val">Valor Final × 0,8436…</span>
+    </div>
+  </div>
+
+  <div class="card" id="hist-card">
+    <div class="hist-header">
+      <div class="card-title" style="margin-bottom:0">Histórico da sessão</div>
+      <button class="btn-limpar" onclick="limparHist()">Limpar</button>
+    </div>
+    <div class="hist-list" id="hist-list"></div>
+  </div>
+
+</main>
+
+<script>
+const PAUTA = {
+10082:4.72,10085:4.72,10083:4.72,10086:4.72,10084:4.72,6639:73.94,1748:56.78,1820:62.43,650:75.97,651:75.97,3402:16.64,909:146.85,635:23.8,598:23.23,852:17.73,686:30.43,750:139.36,4645:139.36,6605:139.36,2718:139.36,2238:118.89,12238:117.31,3714:96.59,3715:83.51,3736:4.83,3737:7.17,816:68.74,2489:126.42,1753:60.84,754:60.78,755:63.46,2486:476.51,2485:1159.62,1749:60.84,757:60.84,759:272.24,870:23.33,611:18.23,612:18.23,614:18.23,630:23.33,631:23.33,3652:17.73,1116:124.44,9634:9.9,400:16.37,405:16.37,2420:6.05,7057:6.05,9592:17.02,401:17.02,4573:10.71,6797:6.08,411:6.23,1347:40.29,1736:48.25,410:204.24,3659:26.52,3660:26.52,395:8.2,8965:8.2,402:15.71,1330:20.47,939:245.64,2784:55.63,427:40.77,2504:28.68,3433:47.69,3434:48.26,3432:43.97,2424:6.47,2421:78.72,2423:6.04,403:17.88,409:17.88,416:20.14,1628:16.46,2414:9.25,1099:17.99,2410:17.99,2492:11.06,2493:132.72,8772:11.06,2773:113.68,2775:113.68,2774:113.68,5082:113.68,423:31.52,8889:45,1209:80.15,2204:123.45,2203:72.24,2205:71.11,4754:75.91,428:51.33,1375:75.91,2201:77.31,2788:51.14,2789:51.14,7061:5.14,444:36.35,2265:54.96,426:46.23,452:15.53,1854:37.15,305:36.87,397:17.15,1506:20.47,432:23.1,414:20.47,404:20.47,1090:147.63,8647:30.21,9637:64.28,752:76.95,9636:78.9,4339:107.22,9703:12.06,9704:12.06,4330:12.06,4331:12.06,510:21.16,1569:17.73,642:19,2186:4,8512:11.25,3427:4,1593:11.25,854:16.01,1580:12.75,1583:12.75,2892:10.31,2891:10.31,731:21.19,1432:4.17,8883:20.95,2344:4.17,8884:20.95,628:12.41,8697:6.86,8698:7.23,8696:7.48,8699:6.82,6840:8.85,9941:8.36,2823:18.5,1653:15.49,2566:20.16,9541:17.76,853:17.23,10081:20.23,2868:16.14,626:21.9,690:51.38,695:18.79,8526:18.79,693:26.09,694:20.09,1387:20.67,691:31.62,8885:7.98,2434:6.35,8966:6.35,3565:6.35,2432:6.35,2433:6.35,2428:6.35,2431:6.35,6843:6.35,2472:6.35,2429:6.35,2430:6.35,2473:6.35,657:32.79,3870:16.53,3871:16.53,3872:16.53,926:30.43,1413:231.65,922:37.82,921:37.27,1298:128.57,11298:128.57,9791:139.22,4574:104.79,8856:139.22,2348:104.79,3654:140.3,4651:0,2830:268.59,1227:119.88,1522:135.5,3273:27.43,9685:27.43,4541:27.43,3282:27.43,3283:27.43,9572:27.43,4283:56,385:80.78,2822:66.3,2387:66.3,2512:24.31,2488:71.48,2992:18.15,4094:18.15,3577:48.99,9548:398.89,867:38.06,10221:38.06,6831:38.06,2679:38.06,3847:38.06,8893:23.84,8892:23.84,8891:23.84,769:51.51,1670:90.03,3888:83.06,2285:29.59,2405:337.27,1012:135.52,3666:140.1,6172:115.97,3287:119.56,4481:23.24,352:248.68,4118:22.83,8658:16.62,2793:37.26,9597:36.92,4323:8.94,1876:7.01,4321:8.49,4324:8.94,453:7.46,1675:5.98,3661:7.46,464:7.46,6966:5.98,1669:7.46,369:7.46,4572:5.98,454:7.46,1674:5.98,455:7.46,10562:7.46,8887:7.46,10563:7.46,1672:5.98,8525:7.46,456:7.46,1673:5.98,457:7.46,465:7.46,1229:7.46,6112:5.98,450:7.1,4297:6.32,4299:6.32,4298:6.32,2359:5,2284:6.45,2287:6.45,2286:6.45,8514:8.55,458:10.92,4989:6.26,2345:3.61,2282:6.56,2283:6.56,2279:6.56,8560:13.22,9722:133.21,9723:138.04,9616:13.22,9721:136.53,9724:135.51,8561:13.26,2564:16.87,4485:10.01,596:10.01,591:10.01,592:10.01,8502:9.35,4326:10.01,9655:10.01,593:10.01,4145:38.62,4569:112.5,4570:128.57,797:27.32,3974:76.95,3986:119.88,3987:185.22,4520:134.1,2974:108.25,9727:242.87,933:16.99,3988:143.99,3985:93.28,1412:69.31,544:69.31,545:69.31,586:69.31,1218:69.31,546:69.31,585:69.31,580:69.31,524:69.31,595:69.31,519:69.31,582:69.31,583:69.31,588:69.31,9579:69.31,2782:69.31,1409:69.31,584:69.31,1336:69.31,2783:69.31,581:69.31,587:69.31,348:69.31,594:69.31,1335:69.31,8924:86.83,847:100.48,4155:197.49,4154:197.49,383:164.56,1459:34.95,1453:34.95,985:34.95,1889:44.07,1457:34.95,849:44.07,1456:34.95,1451:34.95,1452:34.95,3298:34.95,3299:34.95,1450:49.97,1888:34.95,1455:34.95,1454:34.95,1449:34.95,1887:44.07,1570:114.45,8294:69.31,788:168.81,6782:168.81,1308:166.94,1139:191.77,2847:209.86,6153:209.86,1938:209.86,3406:105.37,9613:77.11,6769:94.33,3919:134.23,10354:104.49,2859:87.42,2268:218.74,2870:17.18,851:17.18,3680:202.21,3681:202.21,3320:39.76,4325:39.76,2569:17.73,2477:18.59,6159:22.19,737:22.01,2962:31.24,2714:19.28,4780:18.4,6790:22.08,6788:19.91,6789:19.98,6836:24.9,4646:22.01,2332:10.21,2207:32.9,8702:20.62,1032:29.9,1031:20.29,4343:68.91,412:15.05,6656:14.65,413:17.33,6655:15.63,2256:39.71,738:21.22,6654:14.28,739:17.87,958:24.22,4322:8.94,2993:17.73,9657:35.67,760:45.76,6777:95.65,8062:204.31,3361:74.51,842:39.82,841:39.97,840:39.87,6111:39.71,1020:648.4,6846:648.4,475:47.5,1635:31.29,1343:32.22,1636:49.99,1637:45.2,751:56.9,1034:56.9,3332:30.39,1768:12.43,780:18.5,1770:18.5,1772:18.5,783:18.5,781:18.5,785:18.5,1988:18.5,790:21.88,1788:21.88,791:21.88,1789:21.88,894:12.66,898:12.66,8715:48.11,8717:48.11,8716:48.11,2487:46.23,670:58.85,9728:58.35,2188:163.31,1599:219.59,676:45.5,1676:31.96,640:20.93,1003:342.35,3916:140.88,4779:154.8,762:155.89,763:149.53,10224:347.2,1530:28.29,8900:85.07,830:55.88,831:55.88,8739:16.58,6779:7.22,6780:7.22,6781:7.22,3426:46.83,3423:50.16,716:46.83,718:34.57,706:34.57,717:34.57,1489:52.91,1493:52.05,711:44.74,1476:52.44,1475:52.82,3689:146.01,1761:26.64,1760:26.12,561:29.65,8742:28.98,8734:12.23,7035:25.58,8735:7.62,11560:93.41,689:112.5,1689:112.5,3726:51.29,1560:93.41,1747:98.56,6883:112.5,1524:101.57,1348:196.06,12269:115.95,2269:115.95,3543:99.65,6798:109.16,11525:101.78,6814:101.78,1525:101.78,2792:21.29,599:21.69,2483:22.51,1429:22.51,1430:22.51,814:22.51,813:22.51,811:22.51,2484:22.51,674:23.32,1050:28.37,1046:28.37,1049:28.37,1048:28.37,1047:28.37,497:226.79,1043:14.57,1028:14.57,1042:14.57,1029:14.57,1025:14.57,1024:14.57,887:183.81,373:212.58,1602:6.04,669:29.05,2567:20.13,3285:20.13,3276:20.13,3284:20.13,1634:388.18,1498:185.22,1497:185.22,1499:185.22,3683:125.25,930:185.22,9546:185.22,9547:185.22,2511:22.14,2513:7.7,1766:43.47,2260:18.1,877:18.17,876:18.17,886:108.54,1078:108.54,850:17.64,859:17.64,2560:17.64,2562:17.64,2563:17.64,855:17.64,3305:17.64,857:17.64,2561:17.64,3323:16.48,639:20.57,627:115.8,1571:104.17,2749:27.72,2872:26.17,4097:17.69,4098:17.69,4100:17.69,4099:17.69,918:26.21,2278:16.53,2869:10.22,2271:16.53,2272:16.53,3873:10.22,2275:16.53,2273:16.53,2277:16.53,2276:16.53,2270:16.53,2280:16.53,2274:16.53,5047:57.95,684:38.62,1684:38.62,708:38.62,4287:182.3,9958:14.87,5072:17.71,685:24.85,818:28.28,636:27.54,798:12.17,809:16.6,799:12.17,807:12.17,829:12.17,805:12.17,801:12.17,803:12.17,802:12.17,804:12.17,2754:4.04,8736:4.04,8737:4.04,8650:4.04,7048:4.04,8689:4.04,7050:4.04,8652:4.04,2805:34.84,683:45.51,3934:55.19,1004:30.32,671:45.71,2389:60.61,1095:28.03,1067:29.09,249:19.38,688:12.84,1874:71.36,22087:79.4,773:173.77,2208:50.09,4419:185.41,2697:173.77,2209:169.75,819:183.11,4144:75.88,9574:169.49,2715:115.32,1696:118.78,6796:125.82,1875:125.82,10440:125.82,1055:134.1,10588:125.82,8733:176.72,3823:183.11,3822:173.77,709:172.38,2795:141.74,1507:141.74,4273:108.25,723:100.74,10723:100.74,1561:78.69,9567:76.69,2794:78.69,9566:75.52,880:60.15,969:96.2,6640:77.92,4755:65.62,1447:23.83,1315:37.16,748:27.32,1035:40.27,885:201.64,6116:164.14,6603:235.56,1349:246.39,417:28.53,1562:147.37,1746:564.72,4274:179.53,3510:308.61,746:39.76,8815:40.69,2874:103.72,772:242.87,3939:268.91,1895:102.71,884:111.54,793:322.34,8169:99.39,5502:750.36,741:185.02,3272:145.49,2960:185.02,1147:1432.96,961:273.26,881:251.42,937:251.42,9608:251.42,765:532.91,742:111.18,1010:61.96,3667:83.04,6651:111.18,2742:111.18,1825:136.65,3329:1208.05,4733:2016.59,3917:4342.95,6109:1148.27,745:51.35,4265:51.35,4276:51.35,747:46.18,6195:41.55,1658:31.77,388:172.29,3662:141.83,3617:549.96,1098:35.93,2455:20.94,4738:64.05,1054:44.21,940:60.75,743:60.75,2456:17.55,2444:17.52,1395:1185.66,3169:1185.66,3302:1185.66,2832:154.71,2833:231.48,2834:754.58,2835:1327.94,2873:96.99,4328:241.99,722:81.27,3321:81.27,883:87.28,1009:53.76,4717:77.46,1495:93.28,9943:13.11,446:98.52,3290:98.52,1079:32.91,1075:30.14,1088:59.12,440:31.69,435:58.54,10164:49.99,10165:54.99,10166:49.99,10168:54.99,4798:379.99,10483:95.65,3138:621.99,3048:349.99,740:141.99,3248:249.99,3247:249.99,2964:599.99,2965:999.99,10163:49.99,9691:1364.9,9611:1774.9,9610:1774.9,10526:1774.9,1051:139.9,10469:84.9,925:157.55,9656:23.1,10128:20.47,10464:66.9,956:13.5,10929:139.9,10930:139.9,10931:139.9
+};
+
+const NOMES = {
+9636:"CAMPARI 998ML",9637:"CAMPARI 900ML (SC)",752:"CAMPARI 900ML",9634:"BRASILBERG RTD LN 275ML",
+1051:"WHISKY JAMESON STF 1000ML",867:"GIN ROCKS 1000ML",6831:"GIN ROCKS SICILIAN LEMON 1000ML",
+423:"CACHACA SAGATIBA CRISTALINA 700ML",1298:"GIN BEEFEATER 750ML",11298:"GIN BEEFEATER 750ML (BF)",
+1227:"GIN BOMBAY SAPPHIRE 750ML",930:"VODKA GREY GOOSE ORIGINAL 750ML",
+819:"WHISKEY JACK DANIEL'S HONEY LIQUEUR 1000ML",9722:"JACK DANIELS 700ML",
+6796:"WHISKEY JIM BEAM APPLE 1000ML",2832:"WHISKY DEWAR'S 12 ANOS 750ML",
+685:"VODKA RAJSKA 1000ML",773:"WHISKEY JACK DANIEL'S 1000ML",
+819:"WHISKEY JACK DANIEL'S HONEY 1000ML",2832:"WHISKY DEWAR'S 12 ANOS 750ML"
+};
+
+let historico = [];
+
+function brl(v) {
+  return 'R$ ' + Number(v).toFixed(2).replace('.', ',');
+}
+
+function calcular() {
+  const codRaw = document.getElementById('cod').value.trim();
+  const vfRaw  = document.getElementById('vf').value.trim();
+  const errmsg = document.getElementById('errmsg');
+  const res    = document.getElementById('resultado');
+
+  errmsg.style.display = 'none';
+  res.style.display = 'none';
+
+  if (!codRaw) { errmsg.textContent = 'Informe o código do produto.'; errmsg.style.display = 'block'; return; }
+  if (!vfRaw || isNaN(vfRaw) || Number(vfRaw) <= 0) { errmsg.textContent = 'Informe um valor final válido (maior que zero).'; errmsg.style.display = 'block'; return; }
+
+  const cod = parseInt(codRaw);
+  const F   = parseFloat(vfRaw);
+  const D   = PAUTA.hasOwnProperty(cod) ? PAUTA[cod] : 0;
+  const temPauta = D > 0;
+
+  let B, C, E;
+
+  if (temPauta) {
+    B = (F - (D * 0.25)) / 0.75;
+    C = B * 0.25;
+    E = (D * 0.25) - C;
+  } else {
+    B = F * 0.843614889802805;
+    C = B * 0.25;
+    E = 0;
+  }
+
+  const nome = NOMES[cod] || ('Produto ' + cod);
+
+  document.getElementById('prod-cod').textContent = 'Cód. ' + cod;
+  document.getElementById('prod-nome').textContent = nome;
+
+  const badge = document.getElementById('tipo-badge');
+  if (temPauta) {
+    badge.textContent = 'Com Pauta ST';
+    badge.className = 'tipo-badge badge-pauta';
+  } else {
+    badge.textContent = 'MVA';
+    badge.className = 'tipo-badge badge-mva';
+  }
+
+  let metricsHTML = `
+    <div class="metric highlight">
+      <div class="mlabel">Valor sem ST</div>
+      <div class="mval">${brl(B)}</div>
+      <div class="msub">resultado final</div>
+    </div>
+    <div class="metric">
+      <div class="mlabel">ICMS Próprio</div>
+      <div class="mval">${brl(C)}</div>
+    </div>
+    <div class="metric">
+      <div class="mlabel">Valor Final</div>
+      <div class="mval">${brl(F)}</div>
+    </div>`;
+
+  if (temPauta) {
+    metricsHTML += `
+    <div class="metric">
+      <div class="mlabel">Pauta ST</div>
+      <div class="mval">${brl(D)}</div>
+    </div>
+    <div class="metric">
+      <div class="mlabel">Valor ST</div>
+      <div class="mval">${brl(E)}</div>
+    </div>`;
+  }
+
+  document.getElementById('metrics-grid').innerHTML = metricsHTML;
+  res.style.display = 'block';
+  res.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  historico.unshift({ cod, nome, temPauta, F, B, C, D, E });
+  if (historico.length > 20) historico.pop();
+  renderHist();
+}
+
+function renderHist() {
+  const card = document.getElementById('hist-card');
+  const list = document.getElementById('hist-list');
+  if (historico.length === 0) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  list.innerHTML = historico.map(h => `
+    <div class="hist-item">
+      <div class="hist-cod">${h.cod}</div>
+      <div class="hist-nome">${h.nome}</div>
+      <div class="hist-badge ${h.temPauta ? 'badge-pauta' : 'badge-mva'}">${h.temPauta ? 'Pauta' : 'MVA'}</div>
+      <div class="hist-detalhe">Final ${brl(h.F)} → sem ST <strong>${brl(h.B)}</strong></div>
+    </div>
+  `).join('');
+}
+
+function limparHist() { historico = []; renderHist(); }
+
+document.getElementById('vf').addEventListener('keydown', e => { if (e.key === 'Enter') calcular(); });
+document.getElementById('cod').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('vf').focus(); });
+</script>
+</body>
+</html>
